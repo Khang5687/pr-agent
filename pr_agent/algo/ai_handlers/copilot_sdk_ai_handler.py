@@ -116,6 +116,11 @@ class CopilotSDKAIHandler(BaseAiHandler):
                         value = resolved_cli_path
                     options[field] = value
 
+            if "github_token" not in options:
+                env_github_token = os.getenv("COPILOT_GITHUB_TOKEN") or os.getenv("GITHUB_TOKEN")
+                if env_github_token:
+                    options["github_token"] = env_github_token
+
             cli_url = options.get("cli_url")
             options["auto_start"] = self._coerce_bool(self._get_setting("auto_start", True), True)
             options["auto_restart"] = self._coerce_bool(self._get_setting("auto_restart", True), True)

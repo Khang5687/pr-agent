@@ -75,6 +75,7 @@ class PRModels:
                 "Ensure:\n"
                 "- `config.ai_handler=\"copilot_sdk\"`\n"
                 "- `COPILOT_GITHUB_TOKEN` is configured\n"
+                "- `copilot.github_token` is set (or allow fallback from `COPILOT_GITHUB_TOKEN`)\n"
                 "- Copilot access is active for this account"
             )
 
