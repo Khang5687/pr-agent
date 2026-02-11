@@ -13,6 +13,23 @@ fallback_models = ["..."]
 For models and environments not from OpenAI, you might need to provide additional keys and other parameters.
 You can give parameters via a configuration file, or from environment variables.
 
+### Using GitHub Copilot SDK as the AI handler
+
+PR-Agent can also run with the Copilot SDK backend instead of LiteLLM:
+
+```toml
+[config]
+ai_handler = "copilot_sdk"
+model = "gpt-5"
+fallback_models = ["gpt-5-mini"]
+
+[copilot]
+use_logged_in_user = false
+infinite_sessions_enabled = false
+```
+
+For CI/GitHub Actions, provide a Copilot-authenticated token via `COPILOT_GITHUB_TOKEN`.
+
 !!! note "Model-specific environment variables"
     See [litellm documentation](https://litellm.vercel.app/docs/proxy/quick_start#supported-llms) for the environment variables needed per model, as they may vary and change over time. Our documentation per-model may not always be up-to-date with the latest changes.
     Failing to set the needed keys of a specific model will usually result in litellm not identifying the model type, and failing to utilize it.

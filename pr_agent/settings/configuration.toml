@@ -8,6 +8,7 @@
 # models
 model="gpt-5.2-2025-12-11"
 fallback_models=["o4-mini"]
+ai_handler="litellm" # "litellm" (default) or "copilot_sdk"
 #model_reasoning="o4-mini" # dedicated reasoning model for self-reflection
 #model_weak="gpt-4o" # optional, a weaker model to use for some easier tasks
 # CLI
@@ -344,6 +345,24 @@ success_callback = []
 failure_callback = []
 service_callback = []
 # model_id = "" # Optional: Custom inference profile ID for Amazon Bedrock
+
+[copilot]
+# Copilot SDK handler options (used when config.ai_handler="copilot_sdk")
+timeout = 120
+system_message_mode = "append" # "append" or "replace"
+infinite_sessions_enabled = false
+use_logged_in_user = false
+cli_path = "copilot"
+# cli_url = "" # e.g. "localhost:4321" for external headless mode
+# log_level = "info"
+# github_token = "" # optional; can also use COPILOT_GITHUB_TOKEN env var
+# available_tools = [] # optional allow-list
+# excluded_tools = [] # optional deny-list
+# provider_type = "" # "openai", "azure", or "anthropic" (BYOK)
+# provider_base_url = ""
+# provider_api_key = ""
+# provider_wire_api = "responses"
+# provider_azure_api_version = "2024-10-21"
 
 [pr_similar_issue]
 skip_comments = false

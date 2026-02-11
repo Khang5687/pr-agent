@@ -57,6 +57,32 @@ See detailed usage instructions in the [USAGE GUIDE](https://qodo-merge-docs.qod
 
 This section provides detailed, step-by-step examples for configuring PR-Agent with different models and advanced options in GitHub Actions.
 
+#### Copilot SDK setup (GitHub-hosted, no self-hosting)
+
+To run PR-Agent reviews using your GitHub Copilot subscription from GitHub-hosted runners, use the custom workflow
+`.github/workflows/pr-agent-copilot-sdk.yaml`.
+
+1. Add repository secret `COPILOT_GITHUB_TOKEN` (token from a Copilot-licensed user/account).
+2. Keep `GITHUB_TOKEN` enabled for PR comment publishing.
+3. Set `config.ai_handler: "copilot_sdk"` and `config.model` (for example `gpt-5`) in workflow env.
+
+Example run command in workflow:
+
+```yaml
+      - name: Run PR-Agent with Copilot SDK
+        env:
+          PYTHONPATH: .
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          config.ai_handler: "copilot_sdk"
+          config.model: "gpt-5"
+          copilot.cli_path: "copilot"
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "false"
+          github_action_config.auto_improve: "false"
+        run: python -m pr_agent.servers.github_action_runner
+```
+
 #### Quick Start Examples
 
 ##### Basic Setup (OpenAI Default)

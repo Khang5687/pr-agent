@@ -2,6 +2,7 @@ import shlex
 from functools import partial
 
 from pr_agent.algo.ai_handlers.base_ai_handler import BaseAiHandler
+from pr_agent.algo.ai_handlers.copilot_sdk_ai_handler import CopilotSDKAIHandler
 from pr_agent.algo.ai_handlers.litellm_ai_handler import LiteLLMAIHandler
 from pr_agent.algo.cli_args import CliArgs
 from pr_agent.algo.utils import update_settings_from_args
@@ -46,10 +47,31 @@ command2class = {
 commands = list(command2class.keys())
 
 
+def _resolve_ai_handler(
+    ai_handler: partial[BaseAiHandler,] | None = None,
+) -> partial[BaseAiHandler,]:
+    if ai_handler is not None:
+        return ai_handler
+
+    configured_handler = str(get_settings().config.get("ai_handler", "litellm")).strip().lower()
+    handlers = {
+        "litellm": LiteLLMAIHandler,
+        "copilot": CopilotSDKAIHandler,
+        "copilot_sdk": CopilotSDKAIHandler,
+    }
+    selected_handler = handlers.get(configured_handler)
+    if selected_handler:
+        return selected_handler
+
+    get_logger().warning(
+        f"Unknown config.ai_handler '{configured_handler}'. Falling back to 'litellm'."
+    )
+    return LiteLLMAIHandler
+
 
 class PRAgent:
-    def __init__(self, ai_handler: partial[BaseAiHandler,] = LiteLLMAIHandler):
-        self.ai_handler = ai_handler  # will be initialized in run_action
+    def __init__(self, ai_handler: partial[BaseAiHandler,] | None = None):
+        self.ai_handler = _resolve_ai_handler(ai_handler)
 
     async def _handle_request(self, pr_url, request, notify=None) -> bool:
         # First, apply repo specific settings if exists
