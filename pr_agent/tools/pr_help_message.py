@@ -203,92 +203,93 @@ class PRHelpMessage:
                 pr_comment += "\n\nHere is a list of tools you can use to interact with the PR Agent:\n"
                 base_path = "https://pr-agent-docs.codium.ai/tools"
 
-                tool_names = []
-                tool_names.append(f"[DESCRIBE]({base_path}/describe/)")
-                tool_names.append(f"[REVIEW]({base_path}/review/)")
-                tool_names.append(f"[IMPROVE]({base_path}/improve/)")
-                tool_names.append(f"[UPDATE CHANGELOG]({base_path}/update_changelog/)")
-                tool_names.append(f"[HELP DOCS]({base_path}/help_docs/)")
-                tool_names.append(f"[ADD DOCS]({base_path}/documentation/) 💎")
-                tool_names.append(f"[TEST]({base_path}/test/) 💎")
-                tool_names.append(f"[IMPROVE COMPONENT]({base_path}/improve_component/) 💎")
-                tool_names.append(f"[ANALYZE]({base_path}/analyze/) 💎")
-                tool_names.append(f"[ASK]({base_path}/ask/)")
-                tool_names.append("[MODELS](https://github.com/github/copilot-sdk)")
-                tool_names.append(f"[GENERATE CUSTOM LABELS]({base_path}/custom_labels/) 💎")
-                tool_names.append(f"[CI FEEDBACK]({base_path}/ci_feedback/) 💎")
-                tool_names.append(f"[CUSTOM PROMPT]({base_path}/custom_prompt/) 💎")
-                tool_names.append(f"[IMPLEMENT]({base_path}/implement/) 💎")
-
-                descriptions = []
-                descriptions.append("Generates PR description - title, type, summary, code walkthrough and labels")
-                descriptions.append("Adjustable feedback about the PR, possible issues, security concerns, review effort and more")
-                descriptions.append("Code suggestions for improving the PR")
-                descriptions.append("Automatically updates the changelog")
-                descriptions.append("Answers a question regarding this repository, or a given one, based on given documentation path")
-                descriptions.append("Generates documentation to methods/functions/classes that changed in the PR")
-                descriptions.append("Generates unit tests for a specific component, based on the PR code change")
-                descriptions.append("Code suggestions for a specific component that changed in the PR")
-                descriptions.append("Identifies code components that changed in the PR, and enables to interactively generate tests, docs, and code suggestions for each component")
-                descriptions.append("Answering free-text questions about the PR")
-                descriptions.append("Lists available Copilot models and IDs for inline model override")
-                descriptions.append("Generates custom labels for the PR, based on specific guidelines defined by the user")
-                descriptions.append("Generates feedback and analysis for a failed CI job")
-                descriptions.append("Generates custom suggestions for improving the PR code, derived only from a specific guidelines prompt defined by the user")
-                descriptions.append("Generates implementation code from review suggestions")
-
-                commands  =[]
-                commands.append("`/describe`")
-                commands.append("`/review`")
-                commands.append("`/improve`")
-                commands.append("`/update_changelog`")
-                commands.append("`/help_docs`")
-                commands.append("`/add_docs`")
-                commands.append("`/test`")
-                commands.append("`/improve_component`")
-                commands.append("`/analyze`")
-                commands.append("`/ask`")
-                commands.append("`/models`")
-                commands.append("`/generate_labels`")
-                commands.append("`/checks`")
-                commands.append("`/custom_prompt`")
-                commands.append("`/implement`")
-
-                checkbox_list = []
-                checkbox_list.append(" - [ ] Run <!-- /describe -->")
-                checkbox_list.append(" - [ ] Run <!-- /review -->")
-                checkbox_list.append(" - [ ] Run <!-- /improve -->")
-                checkbox_list.append(" - [ ] Run <!-- /update_changelog -->")
-                checkbox_list.append(" - [ ] Run <!-- /help_docs -->")
-                checkbox_list.append(" - [ ] Run <!-- /add_docs -->")
-                checkbox_list.append(" - [ ] Run <!-- /test -->")
-                checkbox_list.append(" - [ ] Run <!-- /improve_component -->")
-                checkbox_list.append(" - [ ] Run <!-- /analyze -->")
-                checkbox_list.append("[*]")
-                checkbox_list.append("[*]")
-                checkbox_list.append("[*]")
-                checkbox_list.append("[*]")
-                checkbox_list.append("[*]")
-                checkbox_list.append("[*]")
-                checkbox_list.append("[*]")
-                checkbox_list.append("[*]")
-                checkbox_list.append("[*]")
-                checkbox_list.append("[*]")
+                tools = [
+                    {
+                        "name": f"[DESCRIBE]({base_path}/describe/)",
+                        "description": "Generates PR description - title, type, summary, code walkthrough and labels",
+                        "command": "`/describe`",
+                        "checkbox": " - [ ] Run <!-- /describe -->",
+                    },
+                    {
+                        "name": f"[REVIEW]({base_path}/review/)",
+                        "description": "Adjustable feedback about the PR, possible issues, security concerns, review effort and more",
+                        "command": "`/review`",
+                        "checkbox": " - [ ] Run <!-- /review -->",
+                    },
+                    {
+                        "name": f"[IMPROVE]({base_path}/improve/)",
+                        "description": "Code suggestions for improving the PR",
+                        "command": "`/improve`",
+                        "checkbox": " - [ ] Run <!-- /improve -->",
+                    },
+                    {
+                        "name": f"[UPDATE CHANGELOG]({base_path}/update_changelog/)",
+                        "description": "Automatically updates the changelog",
+                        "command": "`/update_changelog`",
+                        "checkbox": " - [ ] Run <!-- /update_changelog -->",
+                    },
+                    {
+                        "name": f"[HELP DOCS]({base_path}/help_docs/)",
+                        "description": "Answers a question regarding this repository, or a given one, based on given documentation path",
+                        "command": "`/help_docs`",
+                        "checkbox": " - [ ] Run <!-- /help_docs -->",
+                    },
+                    {
+                        "name": f"[ADD DOCS]({base_path}/documentation/)",
+                        "description": "Generates documentation to methods/functions/classes that changed in the PR",
+                        "command": "`/add_docs`",
+                        "checkbox": " - [ ] Run <!-- /add_docs -->",
+                    },
+                    {
+                        "name": f"[GENERATE CUSTOM LABELS]({base_path}/custom_labels/)",
+                        "description": "Generates custom labels for the PR, based on specific guidelines defined by the user",
+                        "command": "`/generate_labels`",
+                        "checkbox": " - [ ] Run <!-- /generate_labels -->",
+                    },
+                    {
+                        "name": f"[ASK]({base_path}/ask/)",
+                        "description": "Answering free-text questions about the PR",
+                        "command": "`/ask <question>`",
+                        "checkbox": "[*]",
+                    },
+                    {
+                        "name": "[MODELS](https://github.com/github/copilot-sdk)",
+                        "description": "Lists available Copilot models and IDs for inline model override",
+                        "command": "`/models [--refresh]`",
+                        "checkbox": "[*]",
+                    },
+                    {
+                        "name": f"[SIMILAR ISSUE]({base_path}/similar_issues/)",
+                        "description": "Finds the most similar previous issues for triage context",
+                        "command": "`/similar_issue`",
+                        "checkbox": "[*]",
+                    },
+                    {
+                        "name": "[CONFIG](https://pr-agent-docs.codium.ai/usage-guide/configuration_options/)",
+                        "description": "Shows all available configuration keys",
+                        "command": "`/config`",
+                        "checkbox": "[*]",
+                    },
+                ]
 
                 if isinstance(self.git_provider, GithubProvider) and not get_settings().config.get('disable_checkboxes', False):
                     pr_comment += f"<table><tr align='left'><th align='left'>Tool</th><th align='left'>Description</th><th align='left'>Trigger Interactively :gem:</th></tr>"
-                    for i in range(len(tool_names)):
-                        pr_comment += f"\n<tr><td align='left'>\n\n<strong>{tool_names[i]}</strong></td>\n<td>{descriptions[i]}</td>\n<td>\n\n{checkbox_list[i]}\n</td></tr>"
+                    for tool in tools:
+                        pr_comment += f"\n<tr><td align='left'>\n\n<strong>{tool['name']}</strong></td>\n<td>{tool['description']}</td>\n<td>\n\n{tool['checkbox']}\n</td></tr>"
                     pr_comment += "</table>\n\n"
                     pr_comment += f"""\n\n(1) Note that each tool can be [triggered automatically](https://pr-agent-docs.codium.ai/usage-guide/automations_and_usage/#github-app-automatic-tools-when-a-new-pr-is-opened) when a new PR is opened, or called manually by [commenting on a PR](https://pr-agent-docs.codium.ai/usage-guide/automations_and_usage/#online-usage)."""
                     pr_comment += f"""\n\n(2) Tools marked with [*] require additional parameters to be passed. For example, to invoke the `/ask` tool, you need to comment on a PR: `/ask "<question content>"`. See the relevant documentation for each tool for more details."""
                 elif isinstance(self.git_provider, BitbucketServerProvider):
                     # only support basic commands in BBDC
-                    pr_comment = generate_bbdc_table(tool_names[:4], descriptions[:4])
+                    bbdc_tools = tools[:4]
+                    pr_comment = generate_bbdc_table(
+                        [tool["name"] for tool in bbdc_tools],
+                        [tool["description"] for tool in bbdc_tools],
+                    )
                 else:
                     pr_comment += f"<table><tr align='left'><th align='left'>Tool</th><th align='left'>Command</th><th align='left'>Description</th></tr>"
-                    for i in range(len(tool_names)):
-                        pr_comment += f"\n<tr><td align='left'>\n\n<strong>{tool_names[i]}</strong></td><td>{commands[i]}</td><td>{descriptions[i]}</td></tr>"
+                    for tool in tools:
+                        pr_comment += f"\n<tr><td align='left'>\n\n<strong>{tool['name']}</strong></td><td>{tool['command']}</td><td>{tool['description']}</td></tr>"
                     pr_comment += "</table>\n\n"
                     pr_comment += f"""\n\nNote that each tool can be [invoked automatically](https://pr-agent-docs.codium.ai/usage-guide/automations_and_usage/) when a new PR is opened, or called manually by [commenting on a PR](https://pr-agent-docs.codium.ai/usage-guide/automations_and_usage/#online-usage)."""
 

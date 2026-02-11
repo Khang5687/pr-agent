@@ -8,9 +8,8 @@ class HelpMessage:
                 "> - **/models [--refresh]**: List available Copilot models for this account.   \n" \
                 "> - **/update_changelog**: Update the changelog based on the PR's contents.   \n" \
                 "> - **/help_docs \\<QUESTION\\>**: Given a path to documentation (either for this repository or for a given one), ask a question.   \n" \
-                "> - **/add_docs** 💎: Generate docstring for new components introduced in the PR.   \n" \
-                "> - **/generate_labels** 💎: Generate labels for the PR based on the PR's contents.   \n" \
-                "> - **/analyze** 💎: Automatically analyzes the PR, and presents changes walkthrough for each component.   \n\n" \
+                "> - **/add_docs**: Generate docstring for new components introduced in the PR.   \n" \
+                "> - **/generate_labels**: Generate labels for the PR based on the PR's contents.   \n\n" \
                 ">You can override model per command: **/review gpt-5.2-codex**.   \n" \
                 ">See the [tools guide](https://pr-agent-docs.codium.ai/tools/) for more details.\n" \
                 ">To list the possible configuration parameters, add a **/config** comment.   \n"
