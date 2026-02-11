@@ -1,5 +1,7 @@
 import asyncio
 import json
+import os
+import shutil
 import time
 from typing import Any
 
@@ -97,6 +99,18 @@ class CopilotSDKAIHandler(BaseAiHandler):
             for field in str_fields:
                 value = self._get_setting(field, None)
                 if value not in (None, ""):
+                    if field == "cli_path":
+                        cli_path = str(value)
+                        if os.path.isabs(cli_path):
+                            exists = os.path.exists(cli_path)
+                        else:
+                            exists = shutil.which(cli_path) is not None
+                        if not exists:
+                            get_logger().warning(
+                                f"Configured copilot.cli_path '{cli_path}' was not found. "
+                                "Falling back to bundled Copilot CLI."
+                            )
+                            continue
                     options[field] = value
 
             cli_url = options.get("cli_url")
