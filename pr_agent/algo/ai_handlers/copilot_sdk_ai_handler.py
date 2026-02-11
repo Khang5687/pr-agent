@@ -101,16 +101,19 @@ class CopilotSDKAIHandler(BaseAiHandler):
                 if value not in (None, ""):
                     if field == "cli_path":
                         cli_path = str(value)
+                        resolved_cli_path = cli_path
                         if os.path.isabs(cli_path):
                             exists = os.path.exists(cli_path)
                         else:
-                            exists = shutil.which(cli_path) is not None
+                            resolved_cli_path = shutil.which(cli_path) or ""
+                            exists = bool(resolved_cli_path)
                         if not exists:
                             get_logger().warning(
                                 f"Configured copilot.cli_path '{cli_path}' was not found. "
                                 "Falling back to bundled Copilot CLI."
                             )
                             continue
+                        value = resolved_cli_path
                     options[field] = value
 
             cli_url = options.get("cli_url")
