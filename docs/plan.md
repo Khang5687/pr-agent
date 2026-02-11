@@ -26,6 +26,7 @@ Run PR-Agent reviews on GitHub-hosted Actions using GitHub Copilot usage (no sel
 - [x] Added backend resolver in `pr_agent/agent/pr_agent.py` with `config.ai_handler`.
 - [x] Added Copilot config section and `config.ai_handler` default in `pr_agent/settings/configuration.toml`.
 - [x] Added workflow `/.github/workflows/pr-agent-copilot-sdk.yaml` for GitHub-hosted execution.
+- [x] Converted execution to Docker action path `./github_action/copilot`.
 - [x] Updated docs:
   - `docs/docs/installation/github.md`
   - `docs/docs/usage-guide/changing_a_model.md`

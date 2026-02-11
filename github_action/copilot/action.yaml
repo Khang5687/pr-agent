@@ -1,0 +1,8 @@
+name: "PR-Agent (Copilot SDK)"
+description: "Run PR-Agent on pull requests using GitHub Copilot SDK"
+branding:
+  icon: "award"
+  color: "green"
+runs:
+  using: "docker"
+  image: "Dockerfile"

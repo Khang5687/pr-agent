@@ -21,28 +21,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install Copilot CLI
-        run: |
-          npm install -g @github/copilot
-          copilot --version
-
-      - name: Install PR-Agent dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install github-copilot-sdk==0.1.23
-
-      - name: Run PR-Agent with Copilot SDK
+      - name: Run PR-Agent Copilot Docker action
+        uses: ./github_action/copilot
         env:
           PYTHONPATH: .
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -58,4 +38,3 @@ jobs:
           copilot.use_logged_in_user: "false"
           copilot.timeout: "180"
           copilot.infinite_sessions_enabled: "false"
-        run: python -m pr_agent.servers.github_action_runner

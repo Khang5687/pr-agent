@@ -59,17 +59,18 @@ This section provides detailed, step-by-step examples for configuring PR-Agent w
 
 #### Copilot SDK setup (GitHub-hosted, no self-hosting)
 
-To run PR-Agent reviews using your GitHub Copilot subscription from GitHub-hosted runners, use the custom workflow
-`.github/workflows/pr-agent-copilot-sdk.yaml`.
+To run PR-Agent reviews using your GitHub Copilot subscription from GitHub-hosted runners, use the Docker action path:
+`./github_action/copilot` (or `<owner>/<repo>/github_action/copilot@<ref>` from another repository).
 
 1. Add repository secret `COPILOT_GITHUB_TOKEN` (token from a Copilot-licensed user/account).
 2. Keep `GITHUB_TOKEN` enabled for PR comment publishing.
 3. Set `config.ai_handler: "copilot_sdk"` and `config.model` (for example `gpt-5`) in workflow env.
 
-Example run command in workflow:
+Example workflow step:
 
 ```yaml
-      - name: Run PR-Agent with Copilot SDK
+      - name: PR-Agent Copilot Docker action
+        uses: ./github_action/copilot
         env:
           PYTHONPATH: .
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,8 +81,9 @@ Example run command in workflow:
           github_action_config.auto_review: "true"
           github_action_config.auto_describe: "false"
           github_action_config.auto_improve: "false"
-        run: python -m pr_agent.servers.github_action_runner
 ```
+
+You can customize behavior later in workflow env vars or `.pr_agent.toml`; no need to hardcode behavior in the Docker image.
 
 #### Quick Start Examples
 
