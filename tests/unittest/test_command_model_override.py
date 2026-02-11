@@ -82,6 +82,7 @@ async def test_inline_model_override_with_copilot_when_model_list_fails(monkeypa
     settings = get_settings(use_context=False)
     original_model = settings.config.get("model")
     original_fallback_models = settings.config.get("fallback_models")
+    original_custom_model_max_tokens = settings.config.get("custom_model_max_tokens")
     original_handler = settings.config.get("ai_handler")
     captured: dict = {}
 
@@ -93,17 +94,18 @@ async def test_inline_model_override_with_copilot_when_model_list_fails(monkeypa
         async def run(self):
             captured["model_in_run"] = settings.config.get("model")
 
-    async def fail_fetch_model_ids(*_args, **_kwargs):
+    async def fail_fetch_models(*_args, **_kwargs):
         raise RuntimeError("Not authenticated")
 
     try:
         settings.set("config.ai_handler", "copilot_sdk")
         settings.set("config.model", "gpt-5.2")
         settings.set("config.fallback_models", ["gemini-3-pro-preview"])
+        settings.set("config.custom_model_max_tokens", -1)
 
         monkeypatch.setitem(command2class, "review", DummyReviewTool)
         monkeypatch.setattr("pr_agent.agent.pr_agent.apply_repo_settings", lambda *_: None)
-        monkeypatch.setattr(CopilotSDKAIHandler, "fetch_model_ids", fail_fetch_model_ids)
+        monkeypatch.setattr(CopilotSDKAIHandler, "fetch_models", fail_fetch_models)
 
         result = await PRAgent().handle_request("https://example.com/pr/1", "/review claude-4.5-sonnet")
 
@@ -114,4 +116,55 @@ async def test_inline_model_override_with_copilot_when_model_list_fails(monkeypa
     finally:
         settings.set("config.model", original_model)
         settings.set("config.fallback_models", original_fallback_models)
+        settings.set("config.custom_model_max_tokens", original_custom_model_max_tokens)
+        settings.set("config.ai_handler", original_handler)
+
+
+@pytest.mark.asyncio
+async def test_inline_model_override_sets_custom_model_max_tokens_from_copilot(monkeypatch):
+    settings = get_settings(use_context=False)
+    original_model = settings.config.get("model")
+    original_fallback_models = settings.config.get("fallback_models")
+    original_custom_model_max_tokens = settings.config.get("custom_model_max_tokens")
+    original_handler = settings.config.get("ai_handler")
+    captured: dict = {}
+
+    class DummyReviewTool:
+        def __init__(self, pr_url, ai_handler=None, args=None):
+            captured["args"] = args
+            captured["model_in_init"] = settings.config.get("model")
+            captured["custom_max_tokens_in_init"] = settings.config.get("custom_model_max_tokens")
+
+        async def run(self):
+            captured["model_in_run"] = settings.config.get("model")
+            captured["custom_max_tokens_in_run"] = settings.config.get("custom_model_max_tokens")
+
+    async def fake_fetch_models(*_args, **_kwargs):
+        return [
+            {"id": "claude-opus-4.6", "max_context_window_tokens": 144000},
+            {"id": "gpt-5.2-codex", "max_context_window_tokens": 400000},
+        ]
+
+    try:
+        settings.set("config.ai_handler", "copilot_sdk")
+        settings.set("config.model", "gpt-5.2")
+        settings.set("config.fallback_models", ["gemini-3-pro-preview"])
+        settings.set("config.custom_model_max_tokens", -1)
+
+        monkeypatch.setitem(command2class, "review", DummyReviewTool)
+        monkeypatch.setattr("pr_agent.agent.pr_agent.apply_repo_settings", lambda *_: None)
+        monkeypatch.setattr(CopilotSDKAIHandler, "fetch_models", fake_fetch_models)
+
+        result = await PRAgent().handle_request("https://example.com/pr/1", "/review claude-opus-4.6")
+
+        assert result is True
+        assert captured["args"] == []
+        assert captured["model_in_init"] == "claude-opus-4.6"
+        assert captured["model_in_run"] == "claude-opus-4.6"
+        assert captured["custom_max_tokens_in_init"] == 144000
+        assert captured["custom_max_tokens_in_run"] == 144000
+    finally:
+        settings.set("config.model", original_model)
+        settings.set("config.fallback_models", original_fallback_models)
+        settings.set("config.custom_model_max_tokens", original_custom_model_max_tokens)
         settings.set("config.ai_handler", original_handler)

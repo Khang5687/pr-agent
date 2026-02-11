@@ -90,6 +90,7 @@ def _resolve_ai_handler(
 class PRAgent:
     def __init__(self, ai_handler: partial[BaseAiHandler,] | None = None):
         self.ai_handler = _resolve_ai_handler(ai_handler)
+        self._inline_model_max_tokens: int | None = None
 
     @staticmethod
     def _looks_like_model_name(value: str) -> bool:
@@ -104,26 +105,31 @@ class PRAgent:
             return True
         return "/" in candidate and "-" in candidate
 
-    async def _extract_model_override(self, args: list[str]) -> tuple[str | None, list[str]]:
+    async def _extract_model_override(self, args: list[str]) -> tuple[str | None, list[str], int | None]:
         if not args:
-            return None, args
+            return None, args, None
         candidate = str(args[0]).strip()
         if not candidate or candidate.startswith("--"):
-            return None, args
+            return None, args, None
 
         # Prefer an exact match from Copilot API when using the Copilot SDK handler.
         configured_handler = str(get_settings().config.get("ai_handler", "litellm")).strip().lower()
         if configured_handler in {"copilot", "copilot_sdk"}:
             try:
-                copilot_models = await CopilotSDKAIHandler.fetch_model_ids()
-                if candidate in copilot_models:
-                    return candidate, args[1:]
+                copilot_models = await CopilotSDKAIHandler.fetch_models()
+                for model in copilot_models:
+                    if candidate != model.get("id"):
+                        continue
+                    max_tokens = model.get("max_context_window_tokens") or model.get("max_prompt_tokens")
+                    if isinstance(max_tokens, (int, float)) and max_tokens > 0:
+                        return candidate, args[1:], int(max_tokens)
+                    return candidate, args[1:], None
             except Exception as e:
                 get_logger().debug(f"Failed to fetch Copilot models for inline model override detection: {e}")
 
         if self._looks_like_model_name(candidate):
-            return candidate, args[1:]
-        return None, args
+            return candidate, args[1:], None
+        return None, args, None
 
     async def _handle_request(self, pr_url, request, notify=None) -> bool:
         # First, apply repo specific settings if exists
@@ -141,11 +147,12 @@ class PRAgent:
         model_override = None
         model_args = args
         try:
-            model_override, model_args = await self._extract_model_override(args)
+            model_override, model_args, self._inline_model_max_tokens = await self._extract_model_override(args)
             if model_override:
                 get_logger().info(f"Using inline model override: {model_override}")
         except Exception as e:
             get_logger().debug(f"Failed to parse inline model override: {e}")
+            self._inline_model_max_tokens = None
 
         # validate args
         is_valid, arg = CliArgs.validate_user_args(model_args)
@@ -159,10 +166,25 @@ class PRAgent:
         args = update_settings_from_args(model_args)
         original_model = get_settings().config.get("model", None)
         original_fallback_models = get_settings().config.get("fallback_models", None)
+        original_custom_model_max_tokens = get_settings().config.get("custom_model_max_tokens", None)
         if model_override:
             # Inline command model should take precedence over env/repo defaults for this request.
             get_settings().set("config.model", model_override)
             get_settings().set("config.fallback_models", [])
+            if self._inline_model_max_tokens and self._inline_model_max_tokens > 0:
+                get_settings().set("config.custom_model_max_tokens", self._inline_model_max_tokens)
+            elif (
+                model_override not in MAX_TOKENS
+                and (not isinstance(original_custom_model_max_tokens, (int, float)) or original_custom_model_max_tokens <= 0)
+            ):
+                fallback_max_tokens = get_settings().config.get("max_model_tokens", 32000)
+                if not isinstance(fallback_max_tokens, (int, float)) or fallback_max_tokens <= 0:
+                    fallback_max_tokens = 32000
+                get_logger().warning(
+                    f"Model '{model_override}' has no MAX_TOKENS mapping. "
+                    f"Falling back to config.custom_model_max_tokens={int(fallback_max_tokens)} for this request."
+                )
+                get_settings().set("config.custom_model_max_tokens", int(fallback_max_tokens))
 
         # Append the response language in the extra instructions
         response_language = get_settings().config.get('response_language', 'en-us')
@@ -192,6 +214,7 @@ class PRAgent:
             if model_override:
                 get_settings().set("config.model", original_model)
                 get_settings().set("config.fallback_models", original_fallback_models)
+                get_settings().set("config.custom_model_max_tokens", original_custom_model_max_tokens)
             return False
         try:
             with get_logger().contextualize(command=action, pr_url=pr_url):
@@ -214,6 +237,7 @@ class PRAgent:
             if model_override:
                 get_settings().set("config.model", original_model)
                 get_settings().set("config.fallback_models", original_fallback_models)
+                get_settings().set("config.custom_model_max_tokens", original_custom_model_max_tokens)
 
     async def handle_request(self, pr_url, request, notify=None) -> bool:
         try:
