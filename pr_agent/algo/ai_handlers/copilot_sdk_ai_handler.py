@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 from typing import Any
 
 from pr_agent.algo.ai_handlers.base_ai_handler import BaseAiHandler
@@ -19,6 +20,10 @@ class CopilotSDKAIHandler(BaseAiHandler):
 
     _client = None
     _client_lock: asyncio.Lock | None = None
+    _models_cache: list[dict[str, Any]] | None = None
+    _models_cache_timestamp: float = 0.0
+    _models_cache_ttl_seconds: float = 300.0
+    _models_cache_lock: asyncio.Lock | None = None
 
     def __init__(self):
         self.main_pr_language = "unknown"
@@ -32,6 +37,12 @@ class CopilotSDKAIHandler(BaseAiHandler):
         if cls._client_lock is None:
             cls._client_lock = asyncio.Lock()
         return cls._client_lock
+
+    @classmethod
+    def _get_models_cache_lock(cls) -> asyncio.Lock:
+        if cls._models_cache_lock is None:
+            cls._models_cache_lock = asyncio.Lock()
+        return cls._models_cache_lock
 
     def _get_setting(self, key: str, default: Any = None) -> Any:
         return get_settings().get(f"copilot.{key}", default)
@@ -108,6 +119,51 @@ class CopilotSDKAIHandler(BaseAiHandler):
             await client.start()
             self.__class__._client = client
             return self.__class__._client
+
+    @staticmethod
+    def _normalize_model_info(model: Any) -> dict[str, Any]:
+        capabilities = getattr(model, "capabilities", None)
+        supports = getattr(capabilities, "supports", None) if capabilities else None
+        limits = getattr(capabilities, "limits", None) if capabilities else None
+        policy = getattr(model, "policy", None)
+        billing = getattr(model, "billing", None)
+        return {
+            "id": str(getattr(model, "id", "") or ""),
+            "name": str(getattr(model, "name", "") or ""),
+            "policy_state": str(getattr(policy, "state", "") or ""),
+            "billing_multiplier": getattr(billing, "multiplier", None),
+            "supports_vision": getattr(supports, "vision", None),
+            "supports_reasoning_effort": getattr(supports, "reasoning_effort", None),
+            "max_prompt_tokens": getattr(limits, "max_prompt_tokens", None),
+            "max_context_window_tokens": getattr(limits, "max_context_window_tokens", None),
+            "supported_reasoning_efforts": getattr(model, "supported_reasoning_efforts", None),
+            "default_reasoning_effort": getattr(model, "default_reasoning_effort", None),
+        }
+
+    @classmethod
+    async def fetch_models(cls, force_refresh: bool = False) -> list[dict[str, Any]]:
+        async with cls._get_models_cache_lock():
+            now = time.time()
+            if (
+                not force_refresh
+                and cls._models_cache is not None
+                and (now - cls._models_cache_timestamp) < cls._models_cache_ttl_seconds
+            ):
+                return list(cls._models_cache)
+
+            handler = cls()
+            client = await handler._get_or_start_client()
+            models = await client.list_models()
+            normalized_models = [cls._normalize_model_info(model) for model in models]
+            normalized_models.sort(key=lambda item: item.get("id", ""))
+            cls._models_cache = normalized_models
+            cls._models_cache_timestamp = now
+            return list(normalized_models)
+
+    @classmethod
+    async def fetch_model_ids(cls, force_refresh: bool = False) -> list[str]:
+        models = await cls.fetch_models(force_refresh=force_refresh)
+        return [m["id"] for m in models if m.get("id")]
 
     def _build_session_config(self, model: str, system: str) -> dict:
         session_config: dict[str, Any] = {"model": model}

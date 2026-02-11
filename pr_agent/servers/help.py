@@ -5,11 +5,13 @@ class HelpMessage:
                 "> - **/describe**: Update the PR title and description based on the contents of the PR.   \n" \
                 "> - **/improve [--extended]**: Suggest code improvements. Extended mode provides a higher quality feedback.   \n" \
                 "> - **/ask \\<QUESTION\\>**: Ask a question about the PR.   \n" \
+                "> - **/models [--refresh]**: List available Copilot models for this account.   \n" \
                 "> - **/update_changelog**: Update the changelog based on the PR's contents.   \n" \
                 "> - **/help_docs \\<QUESTION\\>**: Given a path to documentation (either for this repository or for a given one), ask a question.   \n" \
                 "> - **/add_docs** 💎: Generate docstring for new components introduced in the PR.   \n" \
                 "> - **/generate_labels** 💎: Generate labels for the PR based on the PR's contents.   \n" \
                 "> - **/analyze** 💎: Automatically analyzes the PR, and presents changes walkthrough for each component.   \n\n" \
+                ">You can override model per command: **/review gpt-5.2-codex**.   \n" \
                 ">See the [tools guide](https://pr-agent-docs.codium.ai/tools/) for more details.\n" \
                 ">To list the possible configuration parameters, add a **/config** comment.   \n"
        return commands_text
@@ -35,6 +37,11 @@ class HelpMessage:
 [pr_reviewer]
 some_config1=...
 some_config2=...
+```
+
+- To override the model for only this command invocation, pass model ID as first argument:
+```
+/review gpt-5.2-codex
 ```
     """
 
@@ -159,6 +166,11 @@ The `ask` tool answers questions about the PR, based on the PR code changes.
 It can be invoked manually by commenting on any PR:
 ```
 /ask "..."
+```
+
+To override the model for only this command invocation, pass model ID first:
+```
+/ask gpt-5.2-codex "..."
 ```
 
 Note that the tool does not have "memory" of previous questions, and answers each question independently.

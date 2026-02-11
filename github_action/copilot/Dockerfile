@@ -4,16 +4,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y git curl nodejs
 
 WORKDIR /app
 
-COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
 RUN pip install --no-cache-dir github-copilot-sdk==0.1.23
 RUN npm install -g @github/copilot
 
 ENV PYTHONPATH=/app
 
-COPY pr_agent /app/pr_agent
-COPY docs /app/docs
-COPY github_action/copilot/entrypoint.sh /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
